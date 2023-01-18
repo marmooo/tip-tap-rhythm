@@ -673,10 +673,10 @@ function scoring() {
   document.getElementById("missRate").textContent = missRate + "%";
   document.getElementById("score").textContent = score;
   const info = `title composer`;
-  const text = encodeURIComponent(`Tip Tap Notes! ${info}: ${score}`);
-  const url = "https://marmooo.github.com/tip-tap-notes/";
+  const text = encodeURIComponent(`Tip Tap Rhythm! ${info}: ${score}`);
+  const url = "https://marmooo.github.com/tip-tap-rhythm/";
   const twitterUrl =
-    `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=TipTapNotes`;
+    `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=TipTapRhythm`;
   document.getElementById("twitter").href = twitterUrl;
 }
 
