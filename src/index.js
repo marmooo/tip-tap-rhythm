@@ -139,7 +139,7 @@ function calcPixelsPerTimeStep() {
     averageTime += note.endTime - note.startTime;
   });
   averageTime /= ns.notes.length;
-  return 30 / averageTime;
+  return noteHeight / averageTime;
 }
 
 function initVisualizer() {
@@ -427,7 +427,7 @@ function calcHeightSteps() {
   const times = ns.notes
     .map((note) => note.endTime - note.startTime)
     .sort();
-  const baseHeight = 30 / times[Math.ceil(times.length / 4)];
+  const baseHeight = noteHeight / times[Math.ceil(times.length / 4)];
   const steps = [
     [baseHeight, 32],
     [baseHeight, 16],
@@ -510,9 +510,9 @@ function changeVisualizerPositions(visualizer) {
     .map((rect) => {
       const height = parseFloat(rect.getAttribute("height"));
       const y = parseFloat(rect.getAttribute("y"));
-      if (height < 30) {
-        rect.setAttribute("height", 30);
-        rect.setAttribute("y", y - 30 + height);
+      if (height < noteHeight) {
+        rect.setAttribute("height", noteHeight);
+        rect.setAttribute("y", y - noteHeight + height);
       }
       return rect;
     })
@@ -682,6 +682,7 @@ function scoring() {
   document.getElementById("twitter").href = twitterUrl;
 }
 
+const noteHeight = 30;
 let ns;
 let nsCache;
 let seekbarInterval;
