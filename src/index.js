@@ -427,6 +427,7 @@ function _removeChord(rects) {
 }
 
 function changeLevel() {
+  tapCount = perfectCount = greatCount = 0;
   const level = document.getElementById("levelOption").selectedIndex - 1;
   const heightSteps = calcHeightSteps();
   const heightThreshold = heightSteps[level][0];
