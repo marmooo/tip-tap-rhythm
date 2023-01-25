@@ -240,26 +240,24 @@ function clearPlayer() {
 
 function speedDown() {
   const input = document.getElementById("speed");
-  const speed = parseInt(input.value) - 10;
-  if (speed < 0) {
-    input.value = 0;
-  } else {
-    input.value = speed;
-  }
+  const value = parseInt(input.value) - 10;
+  const speed = (value < 0) ? 0 : value;
+  input.value = speed;
   document.getElementById("speedDown").disabled = true;
-  changeSpeed();
+  changeSpeed(speed);
   document.getElementById("speedDown").disabled = false;
 }
 
 function speedUp() {
   const input = document.getElementById("speed");
-  input.value = parseInt(input.value) + 10;
+  const speed = parseInt(input.value) + 10;
+  input.value = speed;
   document.getElementById("speedUp").disabled = true;
-  changeSpeed();
+  changeSpeed(speed);
   document.getElementById("speedUp").disabled = false;
 }
 
-function changeSpeed() {
+function changeSpeed(speed) {
   perfectCount = greatCount = 0;
   if (!ns) return;
   switch (player.getPlayState()) {
@@ -267,9 +265,10 @@ function changeSpeed() {
       player.stop();
       clearInterval(seekbarInterval);
       clearInterval(scrollInterval);
+      const prevRate = nsCache.totalTime / ns.totalTime;
+      const rate = prevRate / (speed / 100);
+      const newSeconds = currentTime * rate;
       setSpeed(ns);
-      const speed = nsCache.totalTime / ns.totalTime;
-      const newSeconds = currentTime / speed;
       initSeekbar(ns, newSeconds);
       player.start(ns, undefined, newSeconds);
       setSmoothScroll(newSeconds);
@@ -279,8 +278,10 @@ function changeSpeed() {
     }
     case "paused": {
       setSpeed(ns);
-      const speed = nsCache.totalTime / ns.totalTime;
-      const newSeconds = currentTime / speed;
+      const prevRate = nsCache.totalTime / ns.totalTime;
+      const rate = prevRate / (speed / 100);
+      const newSeconds = currentTime * rate;
+      console.log(currentTime, newSeconds);
       initSeekbar(ns, newSeconds);
       break;
     }
