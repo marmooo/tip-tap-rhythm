@@ -759,20 +759,22 @@ function getMinMaxPitch() {
   return [min, max];
 }
 
-function calcHeightSteps() {
-  const times = ns.notes
-    .map((note) => note.endTime - note.startTime)
-    .sort();
-  const baseHeight = noteHeight / times[Math.ceil(times.length / 4)];
-  const steps = [
-    [baseHeight, 32],
-    [baseHeight, 16],
-    [baseHeight, 8],
-    [baseHeight, 4],
-    [baseHeight, 2],
-    [-Infinity, 1],
-  ];
-  return steps;
+function calcNoteFrequency(level) {
+  const difficulty = ns.notes.length / ns.totalTime;
+  switch (level) {
+    case 1:
+      return Math.ceil(difficulty / 0.5);
+    case 2:
+      return Math.ceil(difficulty);
+    case 3:
+      return Math.ceil(difficulty / 1.5);
+    case 4:
+      return Math.ceil(difficulty / 2);
+    case 5:
+      return Math.ceil(difficulty / 2.5);
+    case 6:
+      return Math.ceil(difficulty / 3);
+  }
 }
 
 function splitInstruments(notes) {
@@ -809,10 +811,8 @@ function _removeChord(rects) {
 
 function changeLevel() {
   tapCount = perfectCount = greatCount = 0;
-  const level = document.getElementById("levelOption").selectedIndex - 1;
-  const heightSteps = calcHeightSteps();
-  const heightThreshold = heightSteps[level][0];
-  const stripeFrequency = heightSteps[level][1];
+  const level = document.getElementById("levelOption").selectedIndex;
+  const noteFrequency = calcNoteFrequency(level);
   const map = new Map();
   ns.notes.forEach((note) => {
     map.set(note.instrument, false);
@@ -820,17 +820,12 @@ function changeLevel() {
   const rects = [...visualizer.svg.children];
   let i = 0;
   rects.forEach((rect) => {
-    const height = parseFloat(rect.getAttribute("height"));
-    if (height <= heightThreshold) {
-      if (i % stripeFrequency == 0) {
-        rect.classList.remove("d-none");
-      } else {
-        rect.classList.add("d-none");
-      }
-      i += 1;
-    } else {
+    if (i % noteFrequency == 0) {
       rect.classList.remove("d-none");
+    } else {
+      rect.classList.add("d-none");
     }
+    i += 1;
   });
   // _removeChord(rects);
 }
