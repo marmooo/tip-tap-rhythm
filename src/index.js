@@ -718,7 +718,7 @@ function changeSeekbar(event) {
   const seconds = parseInt(event.target.value);
   document.getElementById("currentTime").textContent = formatTime(seconds);
   currentTime = seconds;
-  resizeScroll(seconds);
+  seekScroll(seconds);
   if (player.isPlaying()) {
     player.seekTo(seconds);
     if (player.getPlayState() == "started") {
@@ -745,9 +745,10 @@ function resize() {
   const parentElement = visualizer.parentElement;
   parentElement.scrollTop = parentElement.scrollHeight;
   currentScrollTop = parentElement.scrollTop;
+  seekScroll(currentTime);
 }
 
-function resizeScroll(time) {
+function seekScroll(time) {
   const parentElement = visualizer.parentElement;
   parentElement.scrollTop = parentElement.scrollHeight;
   currentScrollTop = parentElement.scrollTop;
