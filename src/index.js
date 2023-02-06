@@ -115,6 +115,11 @@ function convert(ns, query) {
     note.startTime += 3;
     note.endTime += 3;
   });
+  ns.notes = ns.notes.sort((a, b) => {
+    if (a.startTime < b.startTime) return -1;
+    if (a.startTime > b.startTime) return 1;
+    return 0;
+  });
   nsCache = core.sequences.clone(ns);
   setMIDIInfo(query);
   initVisualizer();
