@@ -519,7 +519,7 @@ async function initPlayer() {
       if (repeat) {
         initSeekbar(ns, 0);
         player.start(ns);
-        setTimer(0);
+        setLoadingTimer(0);
       }
       scoring();
       scoreModal.show();
@@ -561,6 +561,20 @@ function setTimer(seconds) {
   }, delay);
 }
 
+// fix delay caused by player.start(ns) by seeking after playing
+function setLoadingTimer(time) {
+  setTimer(time);
+  const loadingTimer = setInterval(() => {
+    if (player.isPlaying()) {
+      clearInterval(loadingTimer);
+      clearInterval(timer);
+      player.seekTo(currentTime);
+      setTimer(currentTime);
+      initSeekbar(ns, currentTime);
+    }
+  }, 10);
+}
+
 function play() {
   tapCount = perfectCount = greatCount = 0;
   document.getElementById("play").classList.add("d-none");
@@ -569,7 +583,7 @@ function play() {
     case "started":
     case "stopped":
       player.start(ns, undefined, currentTime);
-      setTimer(currentTime);
+      setLoadingTimer(currentTime);
       break;
     case "paused":
       player.resume();
@@ -634,7 +648,7 @@ function changeSpeed(speed) {
   switch (playState) {
     case "started":
       player.start(ns, undefined, newSeconds);
-      setTimer(newSeconds);
+      setLoadingTimer(newSeconds);
       break;
   }
 }
@@ -715,7 +729,7 @@ function changeSeekbar(event) {
   seekScroll(seconds);
   if (playState == "started") {
     player.start(ns, undefined, seconds);
-    setTimer(seconds);
+    setLoadingTimer(seconds);
   }
 }
 
