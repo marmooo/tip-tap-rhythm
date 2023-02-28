@@ -1431,6 +1431,7 @@ document.getElementById("repeat").onclick = repeat;
 document.getElementById("volumeOnOff").onclick = volumeOnOff;
 document.getElementById("volumebar").onchange = changeVolumebar;
 document.getElementById("seekbar").onchange = changeSeekbar;
+document.getElementById("levelOption").onchange = changeLevel;
 document.getElementById("inputMIDIFile").onchange = loadMIDIFileEvent;
 document.getElementById("inputMIDIUrl").onchange = loadMIDIUrlEvent;
 document.getElementById("inputSoundFontFile").onchange = loadSoundFontFileEvent;
