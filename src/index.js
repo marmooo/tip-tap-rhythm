@@ -1143,13 +1143,16 @@ function changeLevel() {
   ns.notes.forEach((note) => {
     map.set(note.instrument, false);
   });
+  const notes = ns.notes;
   const rects = [...visualizer.svg.children];
   let i = 0;
-  rects.forEach((rect) => {
+  rects.forEach((rect, pos) => {
     if (i % noteFrequency == 0) {
       rect.classList.remove("d-none");
+      notes[pos].target = true;
     } else {
       rect.classList.add("d-none");
+      notes[pos].target = false;
     }
     i += 1;
   });
@@ -1174,12 +1177,12 @@ function changeVisualizerPositions(visualizer) {
       }
       return rect;
     })
-    .filter((rect) => !rect.classList.contains("d-none"))
-    .forEach((rect) => {
+    .forEach((rect, i) => {
       const pitch = parseInt(rect.dataset.pitch);
       const n = Math.floor((pitch - minPitch) / courseStep);
       rect.setAttribute("x", Math.ceil(n * widthStep));
       rect.setAttribute("width", widthStep);
+      ns.notes[i].button = n;
     });
 }
 
@@ -1211,19 +1214,18 @@ function typeEventKey(key) {
   if (pos != -1) keyEvents[pos]();
 }
 
-function searchNotePosition(notes, time, recursive) {
+function searchNotePosition(notes, time) {
   let left = 0;
   let right = notes.length - 1;
-  let mid;
   if (time < notes[0].startTime) return -1;
   while (left <= right) {
-    mid = Math.floor((left + right) / 2);
+    const mid = Math.floor((left + right) / 2);
     if (notes[mid].startTime === time) {
       const t = notes[mid].startTime - 1e-8;
       if (t < notes[0].startTime) {
         return 0;
       } else {
-        return searchNotePosition(notes, t, true);
+        return searchNotePosition(notes, t);
       }
     } else if (notes[mid].startTime < time) {
       left = mid + 1;
@@ -1231,45 +1233,44 @@ function searchNotePosition(notes, time, recursive) {
       right = mid - 1;
     }
   }
-  if (recursive) {
-    return right + 1;
-  } else {
-    return searchNotePosition(notes, notes[right].startTime, true);
-  }
+  return right;
 }
 
-function buttonEvent(state, x, svgHeight) {
+function buttonEvent(state, button) {
   tapCount += 1;
-  const waterfallHeight = visualizer.svg.getBoundingClientRect().height;
-  const scrollRatio = visualizer.parentElement.scrollTop / waterfallHeight;
-  let stateText = "MISS";
-  const looseTime = 1;
-  const startTime = currentTime - longestDuration - looseTime;
+  const t = currentTime;
+  const looseTime = 0.1;
+  const startTime = t - longestDuration - looseTime;
   let startPos = searchNotePosition(ns.notes, startTime);
   if (startPos < 0) startPos = 0;
-  const endTime = currentTime + looseTime;
-  const endPos = searchNotePosition(ns.notes, endTime) + 1;
-  [...visualizer.svg.children].slice(startPos, endPos)
-    .filter((rect) => x == parseInt(rect.getAttribute("x")))
-    .filter((rect) => !rect.classList.contains("d-none"))
-    .filter((rect) => !rect.classList.contains("fade"))
-    .forEach((rect) => {
-      const y = parseFloat(rect.getAttribute("y"));
-      const height = parseFloat(rect.getAttribute("height"));
-      const loosePixel = 2;
-      const minRatio = (y - loosePixel) / svgHeight;
-      const maxRatio = (y + height + loosePixel) / svgHeight;
-      const avgRatio = (minRatio + maxRatio) / 2;
-      if (avgRatio <= scrollRatio && scrollRatio <= maxRatio) {
-        stateText = "PERFECT";
-        rect.classList.add("fade");
-        perfectCount += 1;
-      } else if (minRatio <= scrollRatio && scrollRatio < avgRatio) {
-        stateText = "GREAT";
-        rect.classList.add("fade");
-        greatCount += 1;
-      }
-    });
+  const endPos = searchNotePosition(ns.notes, t);
+  const indexes = [];
+  for (let i = startPos; i <= endPos; i++) {
+    const note = ns.notes[i];
+    if (!note.target) continue;
+    if (note.button != button) continue;
+    const rect = visualizer.svg.children[i];
+    if (rect.classList.contains("fade")) continue;
+    indexes.push(i);
+  }
+  let stateText = "MISS";
+  indexes.forEach((index) => {
+    const note = ns.notes[index];
+    const rect = visualizer.svg.children[index];
+    rect.classList.add("fade");
+    const minTime = note.startTime - looseTime;
+    const maxTime = note.endTime + looseTime;
+    const avgRatio = (minTime + maxTime) / 2;
+    if (avgRatio <= t && t <= maxTime) {
+      stateText = "GREAT";
+      rect.classList.add("fade");
+      greatCount += 1;
+    } else if (minTime <= t && t < avgRatio) {
+      stateText = "PERFECT";
+      rect.classList.add("fade");
+      perfectCount += 1;
+    }
+  });
   switch (stateText) {
     case "PERFECT":
       state.textContent = stateText;
@@ -1289,9 +1290,9 @@ function buttonEvent(state, x, svgHeight) {
   }, 200);
 }
 
-function setButtonEvent(button, state, x, svgHeight) {
+function setButtonEvent(state, button) {
   const ev = () => {
-    buttonEvent(state, x, svgHeight);
+    buttonEvent(state, button);
   };
   if ("ontouchstart" in window) {
     button.ontouchstart = ev;
@@ -1308,12 +1309,7 @@ function changeButtons() {
   const course = document.getElementById("courseOption").selectedIndex;
   const playPanel = document.getElementById("playPanel");
   playPanel.replaceChildren();
-  const viewBox = visualizer.svg.getAttribute("viewBox").split(" ");
-  const svgWidth = parseFloat(viewBox[2]);
-  const svgHeight = parseFloat(viewBox[3]);
-  const xStep = svgWidth / course;
   for (let i = 0; i < course; i++) {
-    const x = Math.ceil(i * xStep);
     const div = document.createElement("div");
     div.className = "w-100";
     const state = document.createElement("span");
@@ -1323,7 +1319,7 @@ function changeButtons() {
     button.className = "w-100 btn btn-light btn-tap";
     button.role = "button";
     button.textContent = (course > 10) ? texts[i] : texts[i * 2];
-    setButtonEvent(button, state, x, svgHeight);
+    setButtonEvent(state, i);
     div.appendChild(button);
     div.appendChild(state);
     playPanel.appendChild(div);
