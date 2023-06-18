@@ -1250,7 +1250,7 @@ function buttonEvent(state, buttonPos) {
   const t = currentTime;
   const looseTime = 0.1;
   const startTime = t - longestDuration - looseTime;
-  const endTime = t + looseTime
+  const endTime = t + looseTime;
   let startPos = searchNotePosition(ns.notes, startTime);
   if (startPos < 0) startPos = 0;
   const endPos = searchNotePosition(ns.notes, endTime);
