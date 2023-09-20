@@ -691,6 +691,7 @@ class SoundFontPlayer {
 
   pause() {
     this.state = "paused";
+    this.noCallback = true;
     this.synth.stopPlayer();
   }
 
