@@ -894,7 +894,7 @@ function play() {
       enableController();
       break;
   }
-  window.scrollTo({
+  globalThis.scrollTo({
     top: document.getElementById("playPanel").getBoundingClientRect().top,
     behavior: "auto",
   });
@@ -1310,14 +1310,9 @@ function buttonEvent(state, buttonPos) {
 }
 
 function setButtonEvent(state, button, buttonPos) {
-  const ev = () => {
-    buttonEvent(state, buttonPos);
-  };
-  if ("ontouchstart" in window) {
-    button.ontouchstart = ev;
-  } else {
-    button.onclick = ev;
-  }
+  const ev = () => buttonEvent(state, buttonPos);
+  button.ontouchstart = ev;
+  button.onclick = ev;
   keyEvents.push(ev);
 }
 
